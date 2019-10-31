@@ -16,6 +16,8 @@ if (NOT CMAKE_TOOLCHAIN_FILE)
 endif()
 find_package(SWIG 3.0)
 
+find_package(DBCSR)
+
 ################################################################################
 ## Options
 option(FORTRAN_ONLY "Build only the Fortran bindings." OFF)
@@ -83,6 +85,7 @@ endif()
 ## Get at the source files
 subdirs(Documentation)
 subdirs(Source)
+subdirs(Interface)
 
 if (NOT NOSWIG)
   subdirs(UnitTests)
