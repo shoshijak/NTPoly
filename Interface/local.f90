@@ -2,14 +2,13 @@
 !! This driver should demonstrate how these libraries might be joined using
 !! the local matrix multiplication level of granularity.
 !! You can run it with the following command:
-!!    ./bin/localdriv Interface/mata.mtx Interface/matb.mtx Interface/matc.mtx \
-!!                    Interface/blocks.inp
+!!   ./bin/localdriv Interface/mata.mtx Interface/matb.mtx Interface/blocks.inp
 !! The point of modification is the subroutine MultiplyPairList.
 PROGRAM LocalDriver
   USE DataTypesModule, ONLY : NTREAL
   USE DMatrixModule, ONLY : Matrix_ldr, ConstructEmptyMatrix, DestructMatrix
-  USE SMatrixModule, ONLY : Matrix_lsr, ConstructMatrixFromFile, DestructMatrix, PrintMatrix
-  USE SMatrixAlgebraModule, ONLY : IncrementMatrix, MatrixNorm
+  USE SMatrixModule, ONLY : Matrix_lsr, ConstructMatrixFromFile, DestructMatrix
+  USE SMatrixAlgebraModule, ONLY : IncrementMatrix, MatrixNorm, MatrixMultiply
   IMPLICIT NONE
   !! A data type which describes the pair of matrices to multiply
   TYPE MultPair_t
@@ -19,7 +18,7 @@ PROGRAM LocalDriver
      INTEGER :: M, N, K
   END TYPE MultPair_t
   !! The file names.
-  CHARACTER(len=80) :: mata_file, matb_file, matc_file, blocking_file
+  CHARACTER(len=80) :: mata_file, matb_file, blocking_file
   !! The input and output matrices.
   TYPE(Matrix_lsr) :: mata, matb, matc, matc_computed
   !! The matrix once we split it by blocks.
@@ -41,12 +40,8 @@ PROGRAM LocalDriver
   CALL get_command_argument(2, matb_file)
   CALL ConstructMatrixFromFile(matb, matb_file)
 
-  !! Read the check matrix from file
-  CALL get_command_argument(3, matc_file)
-  CALL ConstructMatrixFromFile(matc, matc_file)
-
   !! Read a second file which has the blocking parameters.
-  CALL get_command_argument(4, blocking_file)
+  CALL get_command_argument(3, blocking_file)
   CALL read_blocks(block_list, blocking_file)
   num_blocks = SIZE(block_list)
 
@@ -87,6 +82,7 @@ PROGRAM LocalDriver
   CALL Dense2d_To_CSR(splitc, matc_computed)
 
   ! !! Check the result.
+  CALL MatrixMultiply(mata, matb, matc)
   CALL IncrementMatrix(matc_computed, matc, alpha_in=-1.0_NTREAL)
   normval = MatrixNorm(matc)
   WRITE(*,*) "Error:", normval
